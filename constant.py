@@ -17,21 +17,23 @@ SYSTEM_ACCOUNTS = ['eosio.bpay',
 'eosio.stake',
 'eosio.vpay',
 'eosio.wrap']
-DOCKER_IMAGE = "eoslaomao/eos:1.4.1-blacklist-plugin"
+DOCKER_IMAGE = "obolus/nodeos"
 BIOS_DOCKER_COMPOSE = """
 version: "3"
 
 services:
   nodeosd:
     image: %s
-    command: nodeos --config /opt/eosio/bin/data-dir/config.ini -d /opt/eosio/bin/data-dir --genesis-json /opt/eosio/bin/data-dir/genesis.json --contracts-console
+    command: nodeos --config-dir /opt/eosio/bin/data-dir --data-dir /opt/eosio/bin/data-dir --genesis-json /opt/eosio/bin/data-dir/genesis.json --contracts-console --trace-history --disable-replay-opts --chain-state-history
     hostname: nodeosd
     container_name: nodeosd
     ports:
       - 8888:8888
       - 9876:9876
+      - 5555:5555
     expose:
       - "9876"
+      - "5555"
     volumes:
       - ./data/bios-node:/opt/eosio/bin/data-dir
 """ % DOCKER_IMAGE
