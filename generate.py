@@ -30,7 +30,7 @@ def process_keys(f, as_list=True):
     with open(f) as key_file:
         for line in key_file:
             name, key = line.strip().split(': ')
-            if not key_pair.has_key(name):
+            if not name in key_pair:
                 key_pair[name] = key
             if len(key_pair.keys()) == 2:
                 #key_line = 'private-key = ["%s", "%s"]'
@@ -66,7 +66,7 @@ def generate():
     keys = process_keys('bp_keys')
 
     m = {'0': 'a', '6': 'b', '7': 'c', '8': 'd', '9': 'e'}
-    account_script = open(FILES[2], 'aw')
+    account_script = open(FILES[2], 'a')
     reg_script = open(FILES[3], 'w')
     prods = []
     port = 9875
@@ -76,7 +76,9 @@ def generate():
         bp_name = ''.join([m[char] if char in m.keys() else char for char in 'bp%d' % i])
         prods.append(bp_name)
         http_port = port - 1000
-        line = tmpl.format(index=i, port=port, http_port=http_port, image=DOCKER_IMAGE)
+        ship_port = port - 800
+        keos_port = port - 500
+        line = tmpl.format(index=i, port=port, http_port=http_port,ship_port=ship_port, keos_port=keos_port, image=DOCKER_IMAGE)
         d = './data/eos-bp{index}'.format(index=i)
         if not os.path.exists(d):
             os.mkdir(d)
@@ -85,7 +87,7 @@ def generate():
         copyfile('./genesis.json', genesis)
         config_dest = os.path.join(d, 'config.ini')
         config_tmpl = open('./config.ini').read()
-        config = config_tmpl.format(bp_name=bp_name, port=port, http_port=http_port, key=keys[i], peers='\n'.join(peers), stale_production='false')
+        config = config_tmpl.format(bp_name=bp_name, port=port, http_port=http_port, ship_port=ship_port,keos_port=keos_port, key=keys[i], peers='\n'.join(peers), stale_production='false')
         pub = keys[i].split('=')[1]
         pri = keys[i].split('=')[2][:3]
         cmd = 'system newaccount eosio {bp_name} {pub} {pub} --stake-net "1000000.0000 EOS" --stake-cpu "1000000.0000 EOS" --buy-ram-kbytes "128000 KiB"'
@@ -98,7 +100,7 @@ def generate():
         port -= 1
 
     # generate bios node config
-    bios_config = config_tmpl.format(bp_name='eosio', port='9876', http_port='8888', key=bios_keys[0], peers='\n'.join(peers), stale_production='true')
+    bios_config = config_tmpl.format(bp_name='eosio', port='9876', http_port='8888',ship_port='8080',keos_port='5555', key=bios_keys[0], peers='\n'.join(peers), stale_production='true')
     with open(bios_config_dest, 'w') as dest:
         dest.write(bios_config)
 
@@ -123,7 +125,7 @@ def generate_import_script():
 
 def generate_voters(prods):
     voter_keys = process_keys('voter_keys', as_list=False)
-    account_script = open(FILES[2], 'aw')
+    account_script = open(FILES[2], 'a')
     token_script = open(FILES[4], 'w')
     delegate_script = open(FILES[5], 'w')
     vote_script = open(FILES[6], 'w')
@@ -152,7 +154,7 @@ def generate_voters(prods):
     delegate_script.close()
 
 def generate_eosio_token():
-    eosio_script = open(FILES[1], 'aw')
+    eosio_script = open(FILES[1], 'a')
     cmd = cmd_wrapper('set contract eosio.token contracts/eosio.token')
     cmd += cmd_wrapper("""push action eosio.token create '{"issuer":"eosio", "maximum_supply": "1000000000.0000 EOS", "can_freeze": 0, "can_recall": 0, "can_whitelist": 0}' -p eosio.token""")
     cmd += cmd_wrapper("""push action eosio.token issue '{"to":"eosio","quantity":"100000000.0000 EOS","memo":"issue"}' -p eosio""")
