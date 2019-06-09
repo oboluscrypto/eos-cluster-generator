@@ -58,7 +58,7 @@ def generate():
     copyfile('./genesis.json', dest_genesis)
     bios_config_dest = os.path.join(d, 'config.ini')
     config_tmpl = open('./config.ini').read()
-    peers = ['p2p-peer-address = %s:9876' % IP]
+    peers = ['p2p-peer-address = nodeosd:9876']
     bios_keys = process_keys('bios_keys')
 
      
@@ -70,9 +70,9 @@ def generate():
     reg_script = open(FILES[3], 'w')
     prods = []
     port = 9875
-    peer_prefix = 'p2p-peer-address = %s' % IP
 
     for i in range(0, len(keys)):
+        peer_prefix = f'p2p-peer-address = nodeosd{i}'
         bp_name = ''.join([m[char] if char in m.keys() else char for char in 'bp%d' % i])
         prods.append(bp_name)
         http_port = port - 1000
