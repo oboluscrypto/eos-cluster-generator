@@ -72,7 +72,7 @@ def generate():
     port = 9875
 
     for i in range(0, len(keys)):
-        peer_prefix = 'p2p-peer-address = nodeosd'+i
+        peer_prefix = 'p2p-peer-address = nodeosd'+str(i)
         bp_name = ''.join([m[char] if char in m.keys() else char for char in 'bp%d' % i])
         prods.append(bp_name)
         http_port = port - 1000
